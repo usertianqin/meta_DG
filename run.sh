@@ -1,0 +1,1 @@
+python main.py svgm-ind --config src/config/transfer/amherst_jh_trans_citeseer.yml --wl2 1e-5 --mu_s .5 --sig_s .5 --mu_v .5 --sig_v .5 --corr_sv .9 --pstd_x 3e-2 --qstd_s=1. --qstd_v=-1. --wgen 1e-4 --wsup 1. --mvn_prior 1 --test_num 2 --update_step 5 --update_step_test 100 --support_split 0.2 --query_split 0.8
