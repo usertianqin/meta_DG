@@ -1,0 +1,42 @@
+
+dataset_name: 'wb_Cornell+wb_Wisconsin'
+trans_dataset_name: 'wb_Texas'
+seed: 42
+
+num_pivots: 100
+hidden_size: 64
+dropout: 0.6
+feat_adj_dropout: 0.6
+gl_dropout: 0.5
+graph_metric_type: 'weighted_cosine'
+graph_skip_conn: 0.3 
+update_adj_ratio: 0.25
+graph_learn_regularization: True
+smoothness_ratio: 0
+degree_ratio: 0
+sparsity_ratio: 0.1
+graph_learn_ratio: 0
+graph_learn_hidden_size: 70
+graph_learn_epsilon: 0
+graph_learn_topk: null
+graph_learn_num_pers: 4 
+graph_hops: 1
+
+
+optimizer: 'Adam'
+learning_rate: 0.001
+weight_decay: 0.005
+grad_clipping: null
+grad_accumulated_steps: 1
+eary_stop_metric: 'nloss'
+max_iter: 5
+eps_adj: 8.5e-5 
+max_episodes: 2
+
+random_seed: 1234
+max_epochs: 100
+epoches: 100
+patience: 10
+
+no_cuda: False
+cuda_id: 3
