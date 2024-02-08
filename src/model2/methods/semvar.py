@@ -1,8 +1,5 @@
 #!/usr/bin/env python3.6
-''' The Semantic-Variation Generative Model.
 
-I.e., the proposed Causal Semantic Generative model (CSG).
-'''
 import sys
 import math
 import torch as tc
@@ -24,7 +21,7 @@ class SemVar:
                 if not corr_sv**2 < 1.: raise ValueError("correlation coefficient larger than 1")
                 corr_sv_val = corr_sv; corr_sv = lambda: corr_sv_val
 
-            p_s = ds.Normal('s', mean=mean_s, std=std_s, shape=shape_s) #ds表示distr文件夹
+            p_s = ds.Normal('s', mean=mean_s, std=std_s, shape=shape_s) 
             dim_s, dim_v = tc.tensor(shape_s).prod(), tc.tensor(shape_v).prod()
             def mean_v1s(s):
                 shape_bat = s.shape[:-len(shape_s)] if len(shape_s) else s.shape
@@ -48,7 +45,7 @@ class SemVar:
             mean_s = tc.zeros(shape_s, device=device) if callable(mean_s) else ds.tensorify(device, mean_s)[0].expand(shape_s).clone().detach()
            
             mean_v = tc.zeros(shape_v, device=device) if callable(mean_v) else ds.tensorify(device, mean_v)[0].expand(shape_v).clone().detach()
-            # Sigma_sv = L_sv L_sv^T, L_sv = (L_ss, 0; M_vs, L_vv)
+           
             std_s_offdiag = tc.zeros((dim_s, dim_s), device=device) # lower triangular of L_ss (excl. diag)
             std_v_offdiag = tc.zeros((dim_v, dim_v), device=device) # lower triangular of L_vv (excl. diag)
             if callable(std_s): # for diag of L_ss
@@ -89,12 +86,7 @@ class SemVar:
                 return std_vs_mat @ std_vs_mat.T + L_vv @ L_vv.T
             p_v = ds.MVNormal('v', mean=mean_v, cov=cov_v, shape=shape_v)
         return p_s, p_v1s, p_v, prior_params_list
-    # SemVar( shape_s, shape_v, shape_x, dc_vars['dim_y'],
-    #             gen.x1sv, dc_vars['pstd_x'], discr.y1s, 
-     #             None None None None
-    #              discr.v1x, std_v1x, discr.s1vx, std_s1vx
-    #             *dc_vars.sublist(['mu_s', 'sig_s', 'mu_v', 'sig_v', 'corr_sv']),
-    #             mode in MODES_DA, *dc_vars.sublist(['src_mvn_prior', 'tgt_mvn_prior']), device )
+
     def __init__(self, shape_s, shape_v, shape_x, dim_y,
             mean_x1sv, std_x1sv, logit_y1s,
             mean_v1x = None, std_v1x = None, mean_s1vx = None, std_s1vx = None, #都是None
@@ -102,18 +94,17 @@ class SemVar:
             mean_s = 0., std_s = 1., mean_v = 0., std_v = 1., corr_sv = .5,
             learn_tprior = False, src_mvn_prior = False, tgt_mvn_prior = False, device = None):
         
-        #("device in init", device)
+      
         if device is not None: ds.Distr.default_device = device
         ds.Distr.clear()
         self.device = device
-        #print("self.device", self.device)
+      
         self._parameter_dict = {}
         self.shape_s, self.shape_v, self.shape_x, self.dim_y = shape_s, shape_v, shape_x, dim_y
         self.learn_tprior = learn_tprior
 
         self.p_x1sv = ds.Normal('x', mean=mean_x1sv, std=std_x1sv, shape=shape_x)
-        #("self.p_x1sv", self.p_x1sv)
-        #print("shape_x in semvar.py 103", shape_x)
+    
         self.p_y1s = getattr(ds, 'Bern' if dim_y == 1 else 'Catg')('y', logits=logit_y1s)
 
         self.p_s, self.p_v1s, self.p_v, prior_params_list = self._get_priors(
@@ -176,7 +167,7 @@ class SemVar:
             with tc.no_grad(): self._parameter_dict[name].copy_(state_dict[name])
 
     def get_lossfn(self, n_mc_q: int=0, reduction: str="mean", mode: str="defl", weight_da: float=None, wlogpi: float=None):
-        if reduction == "mean": reducefn = tc.mean #采用的均值
+        if reduction == "mean": reducefn = tc.mean
         elif reduction == "sum": reducefn = tc.sum
         elif reduction is None or reduction == "none": reducefn = lambda x: x
         else: raise ValueError(f"unknown `reduction` '{reduction}'")
@@ -188,18 +179,16 @@ class SemVar:
             if self.learn_tprior: # svgm-da
                 def lossfn_src(x: tc.Tensor, y: tc.LongTensor) -> tc.Tensor:
                     return -reducefn( xds.elbo_z2xy_twist(self.pt_svx, self.p_y1s, self.p_sv, self.pt_sv, self.qt_sv1x, {'x':x, 'y':y}, n_mc_q, wlogpi) )
-                    # return -reducefn( xds.elbo_z2xy_twist_fixpt(self.p_x1sv, self.p_y1s, self.p_sv, self.pt_sv, self.qt_sv1x, {'x':x, 'y':y}, n_mc_q, wlogpi) )
+                    
             else: # svgm-ind
-                # def lossfn_src(x: tc.Tensor, y: tc.LongTensor, vars:tc.Tensor) -> tc.Tensor:
-                #     return -reducefn( xds.elbo_z2xy_twist(self.pt_svx, self.p_y1s, self.p_v1s, self.p_v, self.qt_sv1x, {'x':x, 'y':y, 'vars':vars}, n_mc_q, wlogpi) )
+               
                 def lossfn_src(x: tc.Tensor, y: tc.LongTensor) -> tc.Tensor:
                     return -reducefn( xds.elbo_z2xy_twist(self.pt_svx, self.p_y1s, self.p_v1s, self.p_v, self.qt_sv1x, {'x':x, 'y':y}, n_mc_q, wlogpi) )
-                
-                #self.p_y1s=discr.y1s, self.p_y1s,  self.p_v1s=semvar.get_prior, self.p_v:<function DistrElem.__init__.<locals>.<lambda> at 0x7f69f04b4b80> , self.qt_sv1x, 
+              
  
         def lossfn_tgt(xt: tc.Tensor) -> tc.Tensor:
             return -reducefn( ds.elbo(self.pt_svx, self.qt_sv1x, {'x': xt}, n_mc_q) )
-            # return -reducefn( xds.elbo_fixllh(self.pt_sv, self.p_x1sv, self.qt_sv1x, {'x': xt}, n_mc_q) )
+        
 
         if mode == "src": return lossfn_src
         elif mode == "tgt": return lossfn_tgt # may be invalid

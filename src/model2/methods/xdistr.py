@@ -24,41 +24,29 @@ def elbo_z2xy(p_zx: Distr, p_y1z: Distr, q_z1x: Distr, obs_xy: edic, n_mc: int=0
         expc_val = q_z1x.expect(lambda dc: p_y1z.logp(dc,dc).exp() * (p_zx.logp(dc,dc) - q_z1x.logp(dc,dc)),
                 obs_xy, n_mc, repar)
         return wlogpi * q_y1x_pval.log() + expc_val / q_y1x_pval
-        # q_y1x_logpval = q_z1x.expect(lambda dc: p_y1z.logp(dc,dc), obs_xy, n_mc, repar,
-        #         reducefn=tc.logsumexp) - math.log(n_mc)
-        # expc_logval = q_z1x.expect(lambda dc: p_y1z.logp(dc,dc) + (p_zx.logp(dc,dc) - q_z1x.logp(dc,dc)).log(),
-        #         obs_xy, n_mc, repar, reducefn=tc.logsumexp) - math.log(n_mc)
-        # return wlogpi * q_y1x_logpval + (expc_logval - q_y1x_logpval).exp()
 
 
-#xds.elbo_z2xy_twist(self.pt_svx, self.p_y1s, self.p_v1s, self.p_v, self.qt_sv1x, {'x':x, 'y':y}, n_mc_q, wlogpi)
-##self.pt_svx, self.p_y1s=discr.y1s, self.p_y1s,  self.p_v1s=semvar.get_prior, self.p_v:<function DistrElem.__init__.<locals>.<lambda> at 0x7f69f04b4b80> , self.qt_sv1x,
+
 def elbo_z2xy_twist(pt_zx: Distr, p_y1z: Distr, p_z: Distr, pt_z: Distr, qt_z1x: Distr, obs_xy: edic, n_mc: int=0, wlogpi: float=1., repar: bool=True) -> tc.Tensor:
-    #vwei_p_y1z_logp = lambda dc: p_z.logp(dc,dc) - pt_z.logp(dc,dc) + p_y1z.logp(dc,dc) # z, y: #只是定义了一个函数
+    
     vwei_p_y1z_logp = lambda dc: p_z.logp(dc,dc) - pt_z.logp(dc,dc)
     if n_mc == 0:
         r_y1x_logpval = qt_z1x.expect(vwei_p_y1z_logp, obs_xy, 0, repar) #, reducefn=tc.logsumexp)
-        #print("_y1x_logpval", r_y1x_logpval.shape)
+       
         if hasattr(qt_z1x, "entropy"): # No difference for Gaussian
             expc_val = qt_z1x.expect(lambda dc: pt_zx.logp(dc,dc), obs_xy, 0, repar) + qt_z1x.entropy(obs_xy)
-        else: #执行
+        else: 
             expc_val = qt_z1x.expect(lambda dc: pt_zx.logp(dc,dc) - qt_z1x.logp(dc,dc), obs_xy, 0, repar)
         
         return wlogpi * r_y1x_logpval + expc_val
-        #return wlogpi * r_y1x_logpval + expc_val
+       
     else:
         r_y1x_pval = qt_z1x.expect(lambda dc: vwei_p_y1z_logp(dc).exp(), obs_xy, n_mc, repar)
         expc_val = qt_z1x.expect( lambda dc: # z, x, y:
                 vwei_p_y1z_logp(dc).exp() * (pt_zx.logp(dc,dc) - qt_z1x.logp(dc,dc)),
             obs_xy, n_mc, repar)
         return wlogpi * r_y1x_pval.log()
-        #return wlogpi * r_y1x_pval.log() + expc_val / r_y1x_pval
-        # r_y1x_logpval = qt_z1x.expect(vwei_p_y1z_logp, obs_xy, n_mc, repar,
-        #         reducefn=tc.logsumexp) - math.log(n_mc) # z, y:
-        # expc_logval = qt_z1x.expect(lambda dc: # z, x, y:
-        #         vwei_p_y1z_logp(dc) + (pt_zx.logp(dc,dc) - qt_z1x.logp(dc,dc)).log(),
-        #     obs_xy, n_mc, repar, reducefn=tc.logsumexp) - math.log(n_mc)
-        # return wlogpi * r_y1x_logpval + (expc_logval - r_y1x_logpval).exp()
+
 
 def elbo_fixllh(p_prior: Distr, p_llh: Distr, q_cond: Distr, obs: edic, n_mc: int=10, repar: bool=True) -> tc.Tensor: # [shape_bat] -> [shape_bat]
     def logp_llh_nograd(dc):
@@ -88,10 +76,5 @@ def elbo_z2xy_twist_fixpt(p_x1z: Distr, p_y1z: Distr, p_z: Distr, pt_z: Distr, q
                 vwei_p_y1z_logp(dc).exp() * (logpt_z_nograd(dc) + p_x1z.logp(dc,dc) - qt_z1x.logp(dc,dc)),
             obs_xy, n_mc, repar)
         return wlogpi * r_y1x_pval.log() + expc_val / r_y1x_pval
-        # r_y1x_logpval = qt_z1x.expect(vwei_p_y1z_logp, obs_xy, n_mc, repar,
-        #         reducefn=tc.logsumexp) - math.log(n_mc) # z, y:
-        # expc_logval = qt_z1x.expect(lambda dc: # z, x, y:
-        #         vwei_p_y1z_logp(dc) + (logpt_z_nograd(dc) + p_x1z.logp(dc,dc) - qt_z1x.logp(dc,dc)).log(),
-        #     obs_xy, n_mc, repar, reducefn=tc.logsumexp) - math.log(n_mc)
-        # return wlogpi * r_y1x_logpval + (expc_logval - r_y1x_logpval).exp()
+
 
