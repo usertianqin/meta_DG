@@ -1,13 +1,5 @@
 #!/usr/bin/env python3.6
-'''Probabilistic Programming Package.
 
-The prototype is distributions, which can be a conditional one with
-functions for parameters to define the dependency. Distribution
-multiplication is implemented, as well as the mean, expectation,
-sampling with backprop capability, and log-probability.
-
-This file is greatly inspired by `torch.distributions`, with some components adopted.
-'''
 
 import warnings
 import math
@@ -75,14 +67,12 @@ class Normal(DistrElem):
     def logp(self, vals: edic, conds: edic=edic()) -> tc.Tensor: # log_probs
         # [shape_bat, shape_var], [shape_bat, shape_cond] -> [shape_bat]
         meanval, stdval = self._meanfn(conds), self._stdfn(conds)
-        #print("stdval", stdval)
+       
         normalized_vals = (vals[self.name] - meanval) / stdval
         quads = reduce_last(tc.sum, normalized_vals ** 2, len(self.shape))
-        #print("stdval.log()", stdval.log())
-        #print("len(self.shape)", len(self.shape))
-        half_log_det = reduce_last(tc.sum, stdval.log(), len(self.shape)) #出现NAN了,stdval出现了负数
-        #print("half_log_det", half_log_det)
-        #都有值
+        
+        half_log_det = reduce_last(tc.sum, stdval.log(), len(self.shape)) 
+      
         return -.5 * quads - half_log_det - self._log_const
 
     def entropy(self, conds: edic=edic()) -> tc.Tensor:

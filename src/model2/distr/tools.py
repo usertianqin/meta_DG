@@ -12,9 +12,6 @@ import torch as tc
 from .utils import edic
 from .base import Distr
 
-__author__ = "Chang Liu"
-__version__ = "1.0.1"
-__email__ = "changliu@microsoft.com"
 
 def elbo(p_joint: Distr, q_cond: Distr, obs: edic, n_mc: int=10, repar: bool=True) -> tc.Tensor: # [shape_bat] -> [shape_bat]
     if hasattr(q_cond, "entropy"):

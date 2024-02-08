@@ -54,7 +54,6 @@ class Distr:
         for name, shape in names_shapes.items():
             shape, = tcsizeify(shape,)
             if Distr.has_name(name):
-                #print("name, shape, Distr.shape_var(name):", name, shape, Distr.shape_var(name))
                 if shape != Distr.shape_var(name): raise ValueError(f"shape not match for existing variable '{name}'")
             else: Distr._shapes_all_vars[name] = shape
         
@@ -78,11 +77,11 @@ class Distr:
         return "p(" + ", ".join(self.names) + (" | " + ", ".join(self.parents) + ")" if self.parents else ")")
 
     def mean(self, conds: edic=edic(), n_mc: int=10, repar: bool=True) -> edic:
-        # [shape_bat, shape_cond] -> [shape_bat, shape_var]
+      
         raise NotImplementedError
 
     def expect(self, fn, conds: edic=edic(), n_mc: int=10, repar: bool=True, reducefn = tc.mean) -> tc.Tensor:
-        # [shape_bat] -> [shape_bat]
+       
         if n_mc == 0:
             vals = self.mean(conds, 0, repar) #
             return fn(conds|vals)
@@ -128,7 +127,7 @@ class Distr:
 
         def _mean(conds: edic=edic(), n_mc: int=10, repar: bool=True) -> edic:
             mean_marg = p_marg.mean(conds, n_mc, repar) # [shape_bat, shape_var_marg]
-            # mean_cond = p_marg.expect(lambda dc: p_cond.mean(dc,dc), conds, n_mc, repar, tc.mean) # Commented for the lack of tc.mean(edic) and efficiency concern
+            
             if indep:
                 mean_cond = p_cond.mean(conds, n_mc, repar) # [shape_bat, shape_var_cond]
             else:

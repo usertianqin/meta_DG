@@ -11,9 +11,6 @@ import torch as tc
 from functools import partial, wraps
 from inspect import signature
 
-__author__ = "Chang Liu"
-__version__ = "1.0.1"
-__email__ = "changliu@microsoft.com"
 
 # enhanced dictionary
 class edic(dict):
@@ -64,23 +61,12 @@ def fargnames(fn) -> set:
     return set(signature(fn).parameters.keys()) # Do not need to substract 'self'
 
 def print_and_execute(fn, dc):
-    #print("edicify(dc)[0]", edicify(dc)[0])
-    #print("fargnames(fn)", fargnames(fn))
     args = fargnames(fn) & edicify(dc)[0]
-    #print("args", args)
     return fn(**args)
 def fedic(fn):
-    #print("fargnames(fn)", fargnames(fn))
-    #print("fn", fn)
-    #print("edicify(dc)[0]", edicify(dc)[0])
-    #print("fn(**( fargnames(fn) & edicify(dc)[0] )) ", fn(**( fargnames(fn) & edicify(dc)[0] )))
-    #print("fedic", wraps(fn)(lambda dc: print_and_execute(fn, dc)))
+    
     return wraps(fn)(lambda dc: print_and_execute(fn, dc))
-    #return wraps(fn)( lambda dc: fn(**( fargnames(fn) & edicify(dc)[0] )) )
-    # pms = signature(fn).parameters
-    # return wraps(fn)( lambda dc: fn(**(
-    #     edic({k:v.default for k,v in pms.items() if v.default is not v.empty})
-    #     | (set(pms.keys()) & edicify(dc)[0])  )) )
+ 
 
 def wrap4_multi_batchdims(fn, ndim_vars = 1):
     """
@@ -129,7 +115,7 @@ def append_attrs(obj, vardict, attrs): # obj = self, vardict = locals(), attrs =
 
 # for tc.Tensor
 def tensorify(device=None, *args) -> tuple:
-    #print("type(arg)", type(args))
+    
     return tuple(arg.to(device) if type(arg) is tc.Tensor else tc.tensor(arg, device=device) for arg in args)
 
 def is_scalar(ten: tc.Tensor) -> bool:
@@ -150,9 +136,9 @@ def flatten_last(ten: tc.Tensor, ndims: int):
 def reduce_last(reducefn, ten: tc.Tensor, ndims: int): # tc.distributions.utils
     if ndims < 1: return ten
     else: 
-        #print("ten.reshape(ten.shape[:-ndims] + (-1,))", ten.shape)
+       
         return reducefn(ten.reshape(ten.shape[:-ndims] + (-1,)), dim=-1)
-    # return reducefn(ten, dim=list(range(-1, -ndims-1, -1))) if ndims else ten # doesn't work for `tc.all`
+  
 
 def swap_dim_ranges(ten: tc.Tensor, dims1: tuple, dims2: tuple) -> tc.Tensor:
     if len(dims1) != 2 or len(dims2) != 2:
