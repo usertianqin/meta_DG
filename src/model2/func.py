@@ -24,14 +24,12 @@ os.environ['TORCH_USE_CUDA_DSA'] = '1'
 os.environ['CUDA_LAUNCH_BLOCKING'] = '1'
 
 # tc.autograd.set_detect_anomaly(True)
-MODES_OOD_NONGEN = {"discr", "cnbb"}
-MODES_OOD_GEN = {"svae", "svgm", "svgm-ind"}
-MODES_DA_NONGEN = {"dann", "cdan", "dan", "mdd", "bnm"}
-MODES_DA_GEN = {"svae-da", "svgm-da", "svae-da2", "svgm-da2"}
 
-MODES_OOD = MODES_OOD_NONGEN | MODES_OOD_GEN
-MODES_DA = MODES_DA_NONGEN | MODES_DA_GEN
-MODES_GEN = MODES_OOD_GEN | MODES_DA_GEN
+MODES_OOD_GEN = {"svae", "svgm", "svgm-ind"}
+
+
+MODES_OOD = MODES_OOD_GEN
+MODES_GEN = MODES_OOD_GEN 
 MODES_TWIST = {"svgm-ind", "svae-da", "svgm-da"}
 
 # Init models
@@ -65,13 +63,13 @@ def get_frame(discr, gen, dc_vars, device = None, discr_src = None):
     elif mode == "svae-da2" and discr_src is not None:
         q_args = ( discr_src.s1x, discr_src.std_s1x if hasattr(discr_src, "std_s1x") else dc_vars['qstd_s'],
             ) + q_args_stem
-    elif mode in MODES_TWIST: # svgm-ind, svgm-da
+    elif mode in MODES_TWIST: 
         q_args = (None,)*len(q_args_stem) + q_args_stem
-    else: #  svgm
+    else: 
         q_args = q_args_stem + (None,)*len(q_args_stem)
 
     if mode.startswith("svgm"):
-        #(s,v)生成模型
+
         frame = SemVar( shape_s, shape_v, shape_x, dc_vars['dim_y'],
                 gen.x1sv, dc_vars['pstd_x'], discr.y1s, *q_args,
                 *dc_vars.sublist(['mu_s', 'sig_s', 'mu_v', 'sig_v', 'corr_sv']),
@@ -164,14 +162,14 @@ def ood_methods(discr, frame, ag, dim_y, cnbb_actv):
             lossfn = get_ce_or_bce_loss(discr, dim_y, ag.reduction)[1]
         elif ag.mode == "cnbb":
             lossfn = CNBBLoss(discr.s1x, cnbb_actv, discr.forward, dim_y, ag.reg_w, ag.reg_s, ag.lr_w, ag.n_iter_w)
-    else: # should be in MODES_GEN
+    else: 
         celossfn = get_ce_or_bce_loss( partial(frame.logit_y1x_src, n_mc_q=ag.n_mc_q)
                 if ag.mode in MODES_TWIST and ag.true_sup else discr,
-            dim_y, ag.reduction)[1] #交叉熵损失
+            dim_y, ag.reduction)[1] 
         relossfn = get_ce_or_bce_loss( partial(frame.logit_y1x_src, n_mc_q=ag.n_mc_q)
                 if ag.mode in MODES_TWIST and ag.true_sup else discr,
             dim_y, ag.reduction)[3]
-        lossobj = frame.get_lossfn(ag.n_mc_q, ag.reduction, "defl", wlogpi=ag.wlogpi/ag.wgen) #目标函数最终损失
+        lossobj = frame.get_lossfn(ag.n_mc_q, ag.reduction, "defl", wlogpi=ag.wlogpi/ag.wgen) 
         lossfn = add_ce_loss(lossobj, celossfn, relossfn, ag)
     return lossfn
 
@@ -182,9 +180,9 @@ def process_continue_run(ag):
         ckpt = load_ckpt(ag.init_model, loadmodel=False)
         if ag.mode != ckpt['mode']: raise RuntimeError("mode not match")
         for k in vars(ag):
-            if k not in {"testdoms", "n_epk", "gpu"}: # use the new final number of epochs
+            if k not in {"testdoms", "n_epk", "gpu"}:
                 setattr(ag, k, ckpt[k])
-        ag.testdoms = [ckpt['testdom']] # overwrite the input `testdoms`
+        ag.testdoms = [ckpt['testdom']] 
     else: ckpt = None
     return ag, ckpt
 
