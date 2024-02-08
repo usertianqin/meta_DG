@@ -39,20 +39,12 @@ class GraphClf(nn.Module):
 
     def forward(self, node_features, adj):
         print("adj:", adj.shape, adj)
-        node_vec = self.encoder(node_features, adj) #原先是output N*lable_class，现在是N*hidden_dim
+        node_vec = self.encoder(node_features, adj) 
         print("node_vec of GraphClf in graph_clf", node_vec.shape, node_vec)
-        #output = F.log_softmax(node_vec, dim=-1)
-        #print("out of GraphClf in graph_clf", output.shape, output)
-        #### node_vec = r
-        #output = self.vae_encoder(node_vec) #预测值
-        #x_= self.gen_code(discr)
-        
+  
         
         return node_vec
-    
-    #def loss(self, node_vec, output, x_, y):
-    #    loss_ce = 
-     #   loss_rec
+
         
         
         

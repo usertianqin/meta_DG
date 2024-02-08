@@ -50,13 +50,13 @@ class PivotGCNLayer(nn.Module):
             nn.init.xavier_uniform_(self.bias)
 
     def forward(self, input, adj, pivot_mp=True, batch_norm=True):
-        support = torch.matmul(input, self.weight) #两个张量的乘积
+        support = torch.matmul(input, self.weight) 
 
         if pivot_mp:
             node_pivot_adj = adj
             node_norm = node_pivot_adj / \
                 torch.clamp(torch.sum(node_pivot_adj, dim=-2,
-                            keepdim=True), min=VERY_SMALL_NUMBER) #torch.clamp()函数用于对输入张量进行截断操作，将张量中的每个元素限制在指定的范围内。
+                            keepdim=True), min=VERY_SMALL_NUMBER) 
             pivot_norm = node_pivot_adj / \
                 torch.clamp(torch.sum(node_pivot_adj, dim=-1,
                             keepdim=True), min=VERY_SMALL_NUMBER)
@@ -107,7 +107,7 @@ class PivotGCN(nn.Module):
 
     def forward(self, x, node_pivot_adj):
         for i, encoder in enumerate(self.graph_encoders[:-1]):
-            x = F.relu(encoder(x, node_pivot_adj)) #对应于公式12，encoder的输出是Z，执行graph_encoders的forward
+            x = F.relu(encoder(x, node_pivot_adj)) 
             x = F.dropout(x, self.dropout, training=self.training)
 
         x = self.graph_encoders[-1](x, node_pivot_adj)

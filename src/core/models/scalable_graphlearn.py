@@ -71,8 +71,7 @@ class PivotGraphLearner(nn.Module):
 
         elif self.metric_type == 'weighted_cosine':
             expand_weight_tensor = self.weight_tensor.unsqueeze(1)
-            # (num_weight_filter,1,dim)
-
+           
             nodes_fc = nodes.unsqueeze(0) * expand_weight_tensor
             # (num_weight,n_node,dim)
             nodes_norm = F.normalize(nodes_fc, p=2, dim=-1)
@@ -122,7 +121,7 @@ class PivotGraphLearner(nn.Module):
         if self.topk is not None:
             attention = self.build_knn_neighbourhood(attention, self.topk, markoff_value)
 
-        return attention    # (n_node, pivot_size)
+        return attention  
 
     def build_knn_neighbourhood(self, attention, topk, markoff_value):
         topk = min(topk, attention.size(-1))
