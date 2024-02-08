@@ -21,8 +21,7 @@ def reset_seed(config):
         seed = np.random.randint(1, 10000)
     np.random.seed(seed)
     torch.manual_seed(seed)
-    # if torch.cuda.is_available():
-    #     torch.cuda.manual_seed(seed)
+
 
 
 def rand_train_test_idx(label, train_prop=.5, valid_prop=.25, ignore_negative=True):
@@ -79,8 +78,7 @@ def normalize_dense_feature(mx):
     mx = r_mat_inv.dot(mx)
     return mx
 
-#['Penn94', 'Amherst41', 'Cornell5', 'Johns Hopkins55', 'Caltech36', 'Brown11', 'Yale4', 'Texas80',
-#              'Caltech36', 'Duke14', 'Princeton12', 'WashU32', 'Brandeis99', 'Carnegie49']:
+
 def load_fb100(dataset):
     assert dataset in {'amherst', 'cornell', 'jh', 'penn', 'reed','caltech','brown','duke','carnegie','prince','brand','carne','yale'}
     name_map = {
@@ -98,20 +96,11 @@ def load_fb100(dataset):
         'yale': 'Yale4'
         
     }
-    DATAPATH = '/home/tqin/meta-learning-graph/data/fb'
+    DATAPATH = '/data/fb'
     root_dir = os.path.join(DATAPATH, dataset)
     adj = pkl.load(open(os.path.join(root_dir, 'adj.pkl'), 'rb'))
     features = pkl.load(open(os.path.join(root_dir, 'features.pkl'), 'rb'))
     label = pkl.load(open(os.path.join(root_dir, 'labels.pkl'), 'rb'))
-    # print("adj", adj)
-    # #num_edge = np.count_nonzero(adj)
-    # print("fb:", adj.nnz)
-
-    #make features into one-hot encodings
-    # y=label.shape[0]
-    # idx_train = torch.LongTensor(range(y))
-    # idx_val = torch.LongTensor(range(y))
-    # idx_test = torch.LongTensor(range(y))
     
     idx_train = pkl.load(open(os.path.join(root_dir, 'idx_train.pkl'), 'rb'))
     idx_val = pkl.load(open(os.path.join(root_dir, 'idx_val.pkl'), 'rb'))
@@ -121,7 +110,7 @@ def load_fb100(dataset):
 
 def load_twitch(dataset):
     assert dataset in {'DE', 'ENGB', 'ES', 'FR', 'PTBR', 'RU', 'TW'}
-    DATAPATH ='/home/tqin/meta-learning-graph/data/twitch'
+    DATAPATH ='/data/twitch'
     root_dir = os.path.join(DATAPATH, dataset)
     label = []
     node_ids = []
@@ -164,31 +153,27 @@ def load_twitch(dataset):
         if int(node) >= n:
             continue
         features[int(node), np.array(feats, dtype=int)] = 1
-    # features = features[:, np.sum(features, axis=0) != 0] # remove zero cols. not need for cross graph task
+    
     new_label = label[reorder_node_ids]
     label = new_label
     y=label.shape[0]
     idx_train = torch.LongTensor(range(y))
     idx_val = torch.LongTensor(range(y))
     idx_test = torch.LongTensor(range(y))
-    #edge_index = A 
-    #print("tw:", A.nnz)
-    #edge_index = torch.tensor(A.nonzero(), dtype=torch.long)
-    #node_feat = torch.tensor(features, dtype=torch.float)
-    #num_nodes = node_feat.shape[0]
+
     
     return A, label, features, idx_train, idx_val, idx_test
 
 def load_webkb(dataset):    
-    #assert dataset in {'DE', 'ENGB', 'ES', 'FR', 'PTBR', 'RU', 'TW'}
-    DATAPATH ='/home/tqin/meta-learning-graph/data/webKB'
+    
+    DATAPATH ='/data/webKB'
     dataset = WebKB(root=DATAPATH, name=dataset)
     graph = dataset[0]
-    #A = graph.edge_index.to_dense()
+    
     A  = to_dense_adj(graph.edge_index)[0].numpy()
     edge_index = scipy.sparse.csr_matrix(A)
     label = graph.y.numpy()
-    #label = torch.tensor(graph.x, dtype=torch.float)
+    
     node_feat = graph.x
     
     
@@ -229,47 +214,17 @@ def load_data(dataset_str, prob_del_edge=None, prob_add_edge=None, seed=1234, sp
         assert len(sub_name) == 2
         sub_name = sub_name[1]
         adj, labels, features, idx_train, idx_val, idx_test = load_webkb(sub_name)
-        #features = normalize_dense_feature(features)
-        #features = torch.Tensor(features)
+ 
         labels = torch.LongTensor(labels)
         idx_train = torch.LongTensor(idx_train)
         idx_val = torch.LongTensor(idx_val)
         idx_test = torch.LongTensor(idx_test)
 
-    # elif dataset_str.startswith('reddit'):
-    #     # sub_name=dataset_str.split('_')[1]
-    #     data_dir = os.path.join('../data/reddit', dataset_str)
-    #     with open(os.path.join(data_dir, dataset_str + '.edgelist'), 'r') as in_f:
-    #         L = in_f.readlines()
-    #         num_node = int(L[0].strip())
-    #         L = L[1:]
-    #         edge_list = [[int(x) for x in e.strip().split()] for e in L]
-    #         nodeset = set([x for e in edge_list for x in e])
-    #     G = nx.Graph()
-    #     G.add_nodes_from([x for x in range(num_node)])
-    #     G.add_edges_from(edge_list)
-    #     adj = nx.adjacency_matrix(G)
-
-    #     raw_features = pkl.load(
-    #         open(os.path.join(data_dir, dataset_str + '.x.pkl'), 'rb'))
-    #     features = normalize_dense_feature(raw_features)
-    #     features = torch.Tensor(features)
-
-    #     raw_labels = pkl.load(
-    #         open(os.path.join(data_dir, dataset_str + '.y.pkl'), 'rb'))
-    #     labels = torch.LongTensor(raw_labels)
-
-    #     idx_train = pkl.load(
-    #         open(os.path.join(data_dir, 'idx_train.pkl'), 'rb'))
-    #     idx_val = pkl.load(open(os.path.join(data_dir, 'idx_val.pkl'), 'rb'))
-    #     idx_test = pkl.load(open(os.path.join(data_dir, 'idx_test.pkl'), 'rb'))
-    #     idx_train = torch.LongTensor(idx_train)
-    #     idx_val = torch.LongTensor(idx_val)
-    #     idx_test = torch.LongTensor(idx_test)
+  
 
     else:
         assert dataset_str in {'cora', 'citeseer', 'pubmed'}
-        data_dir = os.path.join('/home/tqin/meta-learning-graph/data', dataset_str)
+        data_dir = os.path.join('/data', dataset_str)
         names = ['x', 'y', 'tx', 'ty', 'allx', 'ally', 'graph']
         objects = []
         for i in range(len(names)):
@@ -304,13 +259,13 @@ def load_data(dataset_str, prob_del_edge=None, prob_add_edge=None, seed=1234, sp
 
         labels = np.vstack((ally, ty))
         labels[test_idx_reorder, :] = labels[test_idx_range, :]
-        # labels = torch.LongTensor(np.where(labels)[1])
+      
         labels = torch.LongTensor(np.argmax(labels, axis=1))
 
         idx_train = torch.LongTensor(range(len(y)))
         idx_val = torch.LongTensor(range(len(y), len(y) + 500))
         idx_test = torch.LongTensor(test_idx_range.tolist())
-        #print("ciation:", adj.nnz)
+       
 
     if prob_del_edge is not None:
         adj = graph_delete_connections(
@@ -336,8 +291,7 @@ def load_data(dataset_str, prob_del_edge=None, prob_add_edge=None, seed=1234, sp
         adj_norm = torch.Tensor(adj_norm.todense())
 
     return adj_norm, features, labels, idx_train, idx_val, idx_test
-    # adj = torch.Tensor(adj.todense())
-    # return adj, features, labels, idx_train, idx_val, idx_test
+
 
 
 def graph_delete_connections(prob_del, seed, adj, enforce_connected=False):
@@ -410,8 +364,6 @@ def prepare_datasets(dataset_name, config):
             'idx_train': idx_train.to(device) if device else idx_train,
             'idx_val': idx_val.to(device) if device else idx_val,
             'idx_test': idx_test.to(device) if device else idx_test}
-    # data = {'adj': adj.to(device) if device else adj,
-    #         'features': features.to(device) if device else features,
-    #         'labels': labels.to(device) if device else labels}
+
 
     return data
