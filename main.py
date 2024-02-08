@@ -39,7 +39,7 @@ def get_args():
    
     parser.add_argument("--shuffle", type = boolstr, default = True)
 
-    parser.add_argument("--mlpstrufile", type = str, default = "/home/tqin/meta-learning-graph/my/my/src/model2/arch/mlpstru.json")
+    parser.add_argument("--mlpstrufile", type = str, default = "/src/model2/arch/mlpstru.json")
     parser.add_argument("--actv", type = str, default = "Sigmoid")
     parser.add_argument("--after_actv", type = boolstr, default = True)
 

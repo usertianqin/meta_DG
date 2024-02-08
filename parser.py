@@ -24,14 +24,13 @@ def get_parser():
     
 
     # Process
-    #parser.add_argument("--n_epk", type = int, default = 800)
     parser.add_argument("--eval_interval", type = int, default = 5)
     parser.add_argument("--avglast", type = int, default = 4)
     parser.add_argument("--test_num", type = int, default = 1)
-    #parser.add_argument("-ns", "--no_save", action = "store_true")
+
 
     # Optimization
-    #parser.add_argument("--optim", type = str)
+
     parser.add_argument("--update_lr", type = float, help='task-level inner update learning rate',default=2)
     parser.add_argument('--update_step', type=int, help='task-level inner update steps', default=5)
     parser.add_argument('--update_step_test', type=int, help='update steps for finetunning', default=5)
@@ -59,8 +58,6 @@ def get_parser():
     parser.add_argument("--n_mc_q", type = int, default = 0)
     parser.add_argument("--true_sup", type = boolstr, default = False, help = "for 'svgm-ind', 'svgm-da', 'svae-da' only")
     parser.add_argument("--true_sup_val", type = boolstr, default = True, help = "for 'svgm-ind', 'svgm-da', 'svae-da' only")
-   
-    ## For OOD
     parser.add_argument("--mvn_prior", type = boolstr, default = False)
     
 
