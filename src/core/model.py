@@ -21,7 +21,6 @@ class Model(object):
 
         self.criterion = F.nll_loss
         self.score_func = accuracy
-        #self.vae_loss = ood_methods
         self.metric_name = 'acc'
 
         self._init_new_network()

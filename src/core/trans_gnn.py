@@ -82,7 +82,7 @@ class trainer:
             self.trans_model_handler_list.append(ModelHandler(
                 self.config, self.ag, dataset_name=dataset, log_f=self.log_f, save_dir=model_folder))
 
-        self.gl_handler = GL_handler(self.config, save_dir=model_folder)  #得到N*P维的矩阵
+        self.gl_handler = GL_handler(self.config, save_dir=model_folder) 
         self.gl_handler.to(self.device)
         self.opt_gl_handler = init_optimizer(self.gl_handler, config)
         dim_x = self.model_handler_list[0].dim_x
@@ -130,13 +130,13 @@ class trainer:
           
             losses_s[0] += loss
         
-            #获取参数 discr & gen 并计算首次更新的梯度以及更新后的参数
+           
             distr_para = self.discr.parameters()
             gen_para = self.gen.parameters()
             para = list(distr_para) + list(gen_para)
             
-            grad_d = torch.autograd.grad(loss, para, retain_graph=True) #计算损失相对于模型参数的梯度。
-            fast_weights_d = list(map(lambda p: p[1] - self.ag.update_lr * p[0], zip(grad_d, para))) #更新后的参数
+            grad_d = torch.autograd.grad(loss, para, retain_graph=True) 
+            fast_weights_d = list(map(lambda p: p[1] - self.ag.update_lr * p[0], zip(grad_d, para))) 
             
             with torch.no_grad():
                 s, v = self.discr(x_q.to(self.device), para)
@@ -156,8 +156,7 @@ class trainer:
                 losses_q[1] += loss_q
                 acc_q = compute_acc(y_pre, query_lables, model_handler.dim_y)
               
-            for k in range(1, self.ag.update_step): #内部循环，更新k次
-            # 1. run the i-th task and compute loss for k=1~K-1
+            for k in range(1, self.ag.update_step): 
                 
                 s, v = self.discr(x_s.to(self.device), fast_weights_d)
                 y_pre = f_c(s)
@@ -168,7 +167,7 @@ class trainer:
                 losses_s[k] += loss
                 
                 grad_d = torch.autograd.grad(loss, fast_weights_d, retain_graph=True) 
-                fast_weights_d = list(map(lambda p: p[1] - self.ag.update_lr * p[0], zip(grad_d, fast_weights_d))) #参数列表
+                fast_weights_d = list(map(lambda p: p[1] - self.ag.update_lr * p[0], zip(grad_d, fast_weights_d))) 
                 s, v = self.discr(x_q.to(self.device), fast_weights_d)
                 y_pre = f_c(s)
                 x_rec = self.gen( s, v, fast_weights_d)
@@ -260,9 +259,9 @@ class trainer:
                 loss = lossfn(*data_s)
         
                 
-                grad_d = torch.autograd.grad(loss, fast_weights_d, retain_graph=True) #计算损失相对于更新后参数的梯度。
-                fast_weights_d = list(map(lambda p: p[1] - self.ag.update_lr * p[0], zip(grad_d, fast_weights_d))) #参数列表
-                #y_pre, s, v = discr(x_q.to(self.device), fast_weights_d)
+                grad_d = torch.autograd.grad(loss, fast_weights_d, retain_graph=True) 
+                fast_weights_d = list(map(lambda p: p[1] - self.ag.update_lr * p[0], zip(grad_d, fast_weights_d))) 
+         
                 s, v = discr(x_q.to(self.device), fast_weights_d)
                 y_pre = fc(s)
                 x_rec =gen( s, v, fast_weights_d)

@@ -47,7 +47,7 @@ class ModelHandler(object):
             self.device = torch.device('cpu')
         config['device'] = self.device
 
-        datasets = prepare_datasets(dataset_name, config)  # a dict
+        datasets = prepare_datasets(dataset_name, config) 
         self.dataset = dataset_name
         config['num_feat'] = datasets['features'].shape[-1]
         config['num_class'] = datasets['labels'].max().item() + 1
@@ -136,12 +136,12 @@ class ModelHandler(object):
                              training=network.training)
         init_node_vec = features
         
-        # A,X输入GNN计算表示,得到N*128维的embedding，Z^0
+      
         node_vec = network.encoder.graph_encoders[0](init_node_vec,
                                                      init_adj,
                                                      pivot_mp=False,
                                                      batch_norm=False)
-    #     #return p个节点的embedding 和id,
+
         init_pivot_vec, sampled_node_idx = sample_pivots(
             node_vec, int(0.5 * node_vec.shape[0]))
      
@@ -425,7 +425,7 @@ class ModelHandler(object):
         exceeded_max_epochs = epoch >= self.config['max_epochs']
         return False if exceeded_max_epochs or no_improvement else True
 
-    def add_graph_loss(self, out_adj, features): #图稀疏损失
+    def add_graph_loss(self, out_adj, features): 
         graph_loss = 0
         L = torch.diagflat(torch.sum(out_adj, -1)) - out_adj
         if self.config['smoothness_ratio'] > 0:
@@ -433,9 +433,9 @@ class ModelHandler(object):
                 torch.mm(features.transpose(-1, -2), torch.mm(
                     L, features))) / int(np.prod(out_adj.shape))
 
-        if self.config['sparsity_ratio'] > 0: #config['sparsity_ratio']=0.1
+        if self.config['sparsity_ratio'] > 0:
             graph_loss += self.config['sparsity_ratio'] * torch.sum(
-                torch.pow(out_adj, 2)) / int(np.prod(out_adj.shape)) #0.1 * (A*A/n*n)
+                torch.pow(out_adj, 2)) / int(np.prod(out_adj.shape)) 
         return graph_loss
 
     def get_pg_loss(self, out_adj, features):
@@ -462,7 +462,7 @@ def diff(X, Y, Z):
     assert X.shape == Y.shape
     diff_ = torch.sum(torch.pow(X - Y, 2))
     norm_ = torch.sum(torch.pow(Z, 2))
-    diff_ = diff_ / torch.clamp(norm_, min=Constants.VERY_SMALL_NUMBER) #将输入张量限制在指定范围内
+    diff_ = diff_ / torch.clamp(norm_, min=Constants.VERY_SMALL_NUMBER) 
     return diff_
 
 
